@@ -109,6 +109,7 @@ struct {
     {T_TRUE,      "true"  },
     {T_LET,       "let"   },
     {T_WHILE,     "while" },
+    {T_EOF,       "EOF"   },
 };
 
 kind_e keys_of(c_str key) {
@@ -129,6 +130,26 @@ c_str keys_rof(kind_e kind) {
   }
 
   return "";
+}
+
+void skip_white_space(tokens_t* tokens) {
+  while (true) {
+    switch (tokens->code->c_str[tokens->pos]) {
+      case '#':
+        while (tokens->code->c_str[tokens->pos] != '\n') {
+          tokens->pos++;
+        }
+      case '\n':
+        tokens->line++;
+      case ' ':
+      case '\r':
+      case '\t':
+        tokens->pos++;
+      default:
+        return;
+    }
+  }
+  return;
 }
 
 void lexer_init(tokens_t** self, c_str file) {
@@ -157,6 +178,8 @@ tokens_t* lexer(c_str file) {
 #define make(t)   lexer_add(&tokens, (token_t){.kind = (t)})
 
   while (tokens->pos < tokens->code->len) {
+    skip_white_space(tokens);
+
     char ch = pop();
 
     switch (ch) {
