@@ -112,9 +112,9 @@ struct {
     {T_EOF,       "EOF"   },
 };
 
-kind_e keys_of(c_str key) {
+kind_e keys_of(token_t* tok) {
   for (size_t i = 0; i < arrlen(_keys); i++) {
-    if (!strcmp(key, _keys[i].key)) {
+    if (!strcmp(tok->tok->c_str, _keys[i].key)) {
       return _keys[i].kind;
     }
   }
@@ -122,9 +122,12 @@ kind_e keys_of(c_str key) {
   return T_EOF;
 }
 
-c_str keys_rof(kind_e kind) {
+c_str keys_rof(token_t* tok) {
+  if (tok->kind == T_STRING || tok->kind == T_NUMBER || tok->kind == T_IDENT)
+    return tok->tok->c_str;
+
   for (size_t i = 0; i < arrlen(_keys); i++) {
-    if (_keys[i].kind == kind) {
+    if (_keys[i].kind == tok->kind) {
       return _keys[i].key;
     }
   }
@@ -167,6 +170,19 @@ void lexer_add(tokens_t** self, token_t tok) {
   list_push_b(&_(self)->toks, tok);
 }
 
+void make_string(tokens_t* tokens) {
+  size_t start = tokens->pos;
+  while (tokens->code->c_str[tokens->pos] != '"' && tokens->pos < tokens->code->len) {
+    tokens->pos++;
+  }
+
+  lexer_add(&tokens,
+            (token_t){.kind = T_STRING,
+                      .tok  = str_new(&tokens->code->c_str[start], tokens->pos - start)});
+
+  tokens->pos++; /* skip '"' */
+}
+
 tokens_t* lexer(c_str file) {
   tokens_t* tokens = nullptr;
 
@@ -200,6 +216,7 @@ tokens_t* lexer(c_str file) {
       case '=': { make(match('=') ? T_E_EQUAL : T_EQUAL);   break; }
       case '<': { make(match('=') ? T_L_EQUAL : T_LESS);    break; }
       case '>': { make(match('=') ? T_G_EQUAL : T_GREATER); break; }
+      case '"': { make_string(tokens); break; }
       /* clang-format on */
       default:
         break;
@@ -222,7 +239,7 @@ int main(int argc, const char** argv) {
   tokens_t* tokens = lexer("lox.x");
 
   list_for(&tokens->toks, it) {
-    inf("type(%d), '%s'", it->val.kind, keys_rof(it->val.kind));
+    inf("type(%d), '%s'", it->val.kind, keys_rof(&it->val));
   }
 
   goto cleanup;
