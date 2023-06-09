@@ -54,6 +54,8 @@ typedef enum {
 
   T_ERROR,
   T_EOF,
+
+  T_MAX,
 } kind_e;
 
 typedef struct {

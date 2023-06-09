@@ -1,7 +1,9 @@
+let a = 1;
+
 ( ) { } ; , . + - * / ! != = == < <= > >=
 
 "hello \n \r\"world";
 
 fn main() {
-  println('hello world');
+  print("hello world");
 }

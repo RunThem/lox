@@ -14,6 +14,10 @@ set_warnings('all', 'error')
 
 add_cflags('-std=gnu2x')
 
+if is_mode('debug') then
+  add_cflags('-Wno-unused-function')
+end
+
 --- clang block
 -- add_cflags('-fblocks')
 -- if is_plat('linux') then

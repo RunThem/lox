@@ -12,6 +12,7 @@ static void lexer_add(tokens_t** self, token_t tok);
 static void skip_white_space(tokens_t* tokens);
 static void make_string(tokens_t* tokens);
 static bool is_eof(tokens_t* tokens);
+static bool is_ident(char ch);
 
 static void lexer_init(tokens_t** self, c_str file) {
   _(self) = u_talloc(sizeof(tokens_t), tokens_t*);
@@ -48,6 +49,14 @@ static void skip_white_space(tokens_t* tokens) {
   return;
 }
 
+static bool is_eof(tokens_t* tokens) {
+  return tokens->pos >= tokens->code->len;
+}
+
+static bool is_ident(char ch) {
+  return isalnum(ch) || ch == '_';
+}
+
 static void make_string(tokens_t* tokens) {
   size_t start = tokens->pos;
   while (peek() != '"' && !is_eof(tokens)) {
@@ -61,13 +70,30 @@ static void make_string(tokens_t* tokens) {
 
   lexer_add(&tokens,
             (token_t){.kind = T_STRING,
-                      .tok  = str_new(&tokens->code->c_str[start], tokens->pos - start)});
+                      .tok  = str_new(str_at(&tokens->code, start), tokens->pos - start)});
 
   tokens->pos++; /* skip '"' */
 }
 
-static bool is_eof(tokens_t* tokens) {
-  return tokens->pos >= tokens->code->len;
+static void make_ident(tokens_t* tokens) {
+  size_t start = tokens->pos - 1;
+  token_t tok  = {0};
+
+  while (is_ident(peek()) && !is_eof(tokens)) {
+    pop();
+  }
+
+  tok.tok  = str_new(str_at(&tokens->code, start), tokens->pos - start);
+  tok.kind = keys_of(&tok);
+
+  if (tok.kind == T_EOF) {
+    tok.kind = T_IDENT;
+    inf("ident(%s)", tok.tok->c_str);
+  } else {
+    str_cleanup(&tok.tok);
+  }
+
+  lexer_add(&tokens, tok);
 }
 
 tokens_t* lexer(c_str file) {
@@ -100,8 +126,14 @@ tokens_t* lexer(c_str file) {
       case '>': { make(match('=') ? T_G_EQUAL : T_GREATER); break; }
       case '"': { make_string(tokens); break; }
       /* clang-format on */
-      default:
+      default: {
+        if (isalpha(ch) || ch == '_') { /* ident */
+          make_ident(tokens);
+        } else if (isdigit(ch)) { /* number */
+        }
+
         break;
+      }
     }
   }
 
