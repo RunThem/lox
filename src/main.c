@@ -112,7 +112,8 @@ tokens_t* lexer(c_str file) {
   lexer_init(&tokens, file);
 
 #define pop()                (tokens->code->c_str[tokens->pos++])
-#define peek()               (tokens->code->c_str[tokens->pos + 1])
+#define peek()               (tokens->code->c_str[tokens->pos])
+#define match(ch)            (peek() == c(ch))
 #define make(t, str, arg...) lexer_add(&tokens, (token_t){.type = (t), .tok = str_new((str), arg)})
 
   while (tokens->pos < tokens->code->len) {
@@ -133,6 +134,42 @@ tokens_t* lexer(c_str file) {
       case '/': { make(T_DIV,       ch); break; }
       case '%': { make(T_MOD,       ch); break; }
       /* clang-format on */
+      case '!': {
+        if (match('=')) {
+          make(T_B_EQUAL, "!=");
+          pop();
+        } else
+          make(T_BANG, "!");
+
+        break;
+      }
+      case '=': {
+        if (match('=')) {
+          make(T_E_EQUAL, "==");
+          pop();
+        } else
+          make(T_EQUAL, "=");
+
+        break;
+      }
+      case '<': {
+        if (match('=')) {
+          make(T_L_EQUAL, "<=");
+          pop();
+        } else
+          make(T_LESS, "<");
+
+        break;
+      }
+      case '>': {
+        if (match('=')) {
+          make(T_G_EQUAL, ">=");
+          pop();
+        } else
+          make(T_GREATER, ">");
+
+        break;
+      }
       default:
         break;
     }
