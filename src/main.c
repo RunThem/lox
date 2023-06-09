@@ -25,7 +25,7 @@ int main(int argc, const char** argv) {
   tokens = lexer("lox.x");
 
   list_for(&tokens->toks, it) {
-    inf("type(%d), '%s'", it->val.kind, keys_rof(&it->val));
+    inf("%d: type(%d), '%s'", it->val.line, it->val.kind, keys_rof(&it->val));
   }
 
   /*

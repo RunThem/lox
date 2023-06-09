@@ -42,6 +42,7 @@ static void skip_white_space(tokens_t* tokens) {
       case '\r':
       case '\t':
         tokens->pos++;
+        break;
       default:
         return;
     }
