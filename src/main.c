@@ -1,5 +1,4 @@
 /* libs */
-
 #include <u/fs.h>
 #include <u/list.h>
 #include <u/map.h>
@@ -55,10 +54,10 @@ typedef enum {
 
   T_ERROR,
   T_EOF,
-} token_kind_e;
+} kind_e;
 
 typedef struct {
-  token_kind_e type;
+  kind_e type;
   str_t tok;
   int line;
 } token_t;
@@ -70,25 +69,44 @@ typedef struct {
   list(token_t) toks;
 } tokens_t;
 
-map(c_str, token_kind_e) keys = nullptr;
+struct {
+  kind_e kind;
+  c_str key;
+} _keys[] = {
+    {T_CLASS,  "class" },
+    {T_ELSE,   "else"  },
+    {T_FALSE,  "false" },
+    {T_FOR,    "for"   },
+    {T_FN,     "fn"    },
+    {T_IF,     "if"    },
+    {T_NIL,    "nil"   },
+    {T_PRINT,  "print" },
+    {T_RETURN, "return"},
+    {T_SUPER,  "super" },
+    {T_THIS,   "this"  },
+    {T_TRUE,   "true"  },
+    {T_LET,    "let"   },
+    {T_WHILE,  "while" },
+};
 
-void token_init() {
-  map_init(&keys);
+kind_e keys_of(c_str key) {
+  for (size_t i = 0; i < arrlen(_keys); i++) {
+    if (!strcmp(key, _keys[i].key)) {
+      return _keys[i].kind;
+    }
+  }
 
-  map_push(&keys, "class", T_CLASS);
-  map_push(&keys, "else", T_ELSE);
-  map_push(&keys, "false", T_FALSE);
-  map_push(&keys, "for", T_FOR);
-  map_push(&keys, "fn", T_FN);
-  map_push(&keys, "if", T_IF);
-  map_push(&keys, "nil", T_NIL);
-  map_push(&keys, "print", T_PRINT);
-  map_push(&keys, "return", T_RETURN);
-  map_push(&keys, "super", T_SUPER);
-  map_push(&keys, "this", T_THIS);
-  map_push(&keys, "true", T_TRUE);
-  map_push(&keys, "let", T_LET);
-  map_push(&keys, "while", T_WHILE);
+  return T_EOF;
+}
+
+c_str keys_rof(kind_e kind) {
+  for (size_t i = 0; i < arrlen(_keys); i++) {
+    if (_keys[i].kind == kind) {
+      return _keys[i].key;
+    }
+  }
+
+  return "";
 }
 
 void lexer_init(tokens_t** self, c_str file) {
@@ -156,13 +174,7 @@ int main(int argc, const char** argv) {
 
   inf("hello lox");
 
-  token_init();
-
   tokens_t* tokens = lexer("lox.x");
-
-  map_for(&keys, it) {
-    inf("type(%d), '%s'", it->value, it->key);
-  }
 
   list_for(&tokens->toks, it) {
     inf("type(%d)", it->val.type);
