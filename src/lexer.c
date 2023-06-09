@@ -51,7 +51,9 @@ static void skip_white_space(tokens_t* tokens) {
 static void make_string(tokens_t* tokens) {
   size_t start = tokens->pos;
   while (peek() != '"' && !is_eof(tokens)) {
-    tokens->pos++;
+    if (pop() == '\\' && peek() == '"') {
+      pop();
+    }
   }
 
   lexer_add(&tokens,
