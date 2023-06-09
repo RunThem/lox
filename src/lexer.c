@@ -96,6 +96,26 @@ static void make_ident(tokens_t* tokens) {
   lexer_add(&tokens, tok);
 }
 
+static void make_number(tokens_t* tokens) {
+  size_t start = tokens->pos - 1;
+
+  while (isdigit(peek()) && !is_eof(tokens)) {
+    pop();
+  }
+
+  if (peek() == '.' && isdigit(tokens->code->c_str[tokens->pos + 1])) {
+    pop();
+
+    while (isdigit(peek()) && !is_eof(tokens)) {
+      pop();
+    }
+  }
+
+  lexer_add(&tokens,
+            (token_t){.kind = T_NUMBER,
+                      .tok  = str_new(str_at(&tokens->code, start), tokens->pos - start)});
+}
+
 tokens_t* lexer(c_str file) {
   tokens_t* tokens = nullptr;
 
@@ -124,12 +144,17 @@ tokens_t* lexer(c_str file) {
       case '=': { make(match('=') ? T_E_EQUAL : T_EQUAL);   break; }
       case '<': { make(match('=') ? T_L_EQUAL : T_LESS);    break; }
       case '>': { make(match('=') ? T_G_EQUAL : T_GREATER); break; }
-      case '"': { make_string(tokens); break; }
-      /* clang-format on */
+        /* clang-format on */
+
+      case '"': {
+        make_string(tokens);
+        break;
+      }
       default: {
-        if (isalpha(ch) || ch == '_') { /* ident */
+        if (isalpha(ch) || ch == '_') {
           make_ident(tokens);
-        } else if (isdigit(ch)) { /* number */
+        } else if (isdigit(ch)) {
+          make_number(tokens);
         }
 
         break;
