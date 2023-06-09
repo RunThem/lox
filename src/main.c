@@ -57,7 +57,7 @@ typedef enum {
 } kind_e;
 
 typedef struct {
-  kind_e type;
+  kind_e kind;
   str_t tok;
   int line;
 } token_t;
@@ -73,20 +73,42 @@ struct {
   kind_e kind;
   c_str key;
 } _keys[] = {
-    {T_CLASS,  "class" },
-    {T_ELSE,   "else"  },
-    {T_FALSE,  "false" },
-    {T_FOR,    "for"   },
-    {T_FN,     "fn"    },
-    {T_IF,     "if"    },
-    {T_NIL,    "nil"   },
-    {T_PRINT,  "print" },
-    {T_RETURN, "return"},
-    {T_SUPER,  "super" },
-    {T_THIS,   "this"  },
-    {T_TRUE,   "true"  },
-    {T_LET,    "let"   },
-    {T_WHILE,  "while" },
+    {T_L_PAREN,   "("     },
+    {T_R_PAREN,   ")"     },
+    {T_L_BRACE,   "{"     },
+    {T_R_BRACE,   "}"     },
+    {T_COMMA,     ","     },
+    {T_SEMICOLON, ";"     },
+    {T_DOT,       "."     },
+    {T_ADD,       "+"     },
+    {T_SUB,       "-"     },
+    {T_MUL,       "/"     },
+    {T_DIV,       "*"     },
+    {T_MOD,       "%"     },
+    {T_BANG,      "!"     },
+    {T_B_EQUAL,   "!="    },
+    {T_EQUAL,     "="     },
+    {T_E_EQUAL,   "=="    },
+    {T_GREATER,   ">"     },
+    {T_G_EQUAL,   ">="    },
+    {T_LESS,      "<"     },
+    {T_L_EQUAL,   "<="    },
+    {T_AND,       "&&"    },
+    {T_OR,        "||"    },
+    {T_CLASS,     "class" },
+    {T_ELSE,      "else"  },
+    {T_FALSE,     "false" },
+    {T_FOR,       "for"   },
+    {T_FN,        "fn"    },
+    {T_IF,        "if"    },
+    {T_NIL,       "nil"   },
+    {T_PRINT,     "print" },
+    {T_RETURN,    "return"},
+    {T_SUPER,     "super" },
+    {T_THIS,      "this"  },
+    {T_TRUE,      "true"  },
+    {T_LET,       "let"   },
+    {T_WHILE,     "while" },
 };
 
 kind_e keys_of(c_str key) {
@@ -132,7 +154,7 @@ tokens_t* lexer(c_str file) {
 #define pop()     (tokens->code->c_str[tokens->pos++])
 #define peek()    (tokens->code->c_str[tokens->pos])
 #define match(ch) (peek() == c(ch) && (++tokens->pos))
-#define make(t)   lexer_add(&tokens, (token_t){.type = (t)})
+#define make(t)   lexer_add(&tokens, (token_t){.kind = (t)})
 
   while (tokens->pos < tokens->code->len) {
     char ch = pop();
@@ -177,7 +199,7 @@ int main(int argc, const char** argv) {
   tokens_t* tokens = lexer("lox.x");
 
   list_for(&tokens->toks, it) {
-    inf("type(%d)", it->val.type);
+    inf("type(%d), '%s'", it->val.kind, keys_rof(it->val.kind));
   }
 
   goto cleanup;
