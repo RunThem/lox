@@ -89,7 +89,6 @@ static void make_ident(tokens_t* tokens) {
 
   if (tok.kind == T_EOF) {
     tok.kind = T_IDENT;
-    inf("ident(%s)", tok.tok->c_str);
   } else {
     str_cleanup(&tok.tok);
   }

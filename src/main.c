@@ -1,5 +1,6 @@
 /* libs */
 #include "lexer.h"
+#include "parser.h"
 #include "token.h"
 
 tokens_t* tokens = nullptr;
@@ -24,8 +25,10 @@ int main(int argc, const char** argv) {
    * */
   tokens = lexer("lox.x");
 
-  list_for(&tokens->toks, it) {
-    inf("%d: type(%d), '%s'", it->val.line, it->val.kind, keys_rof(&it->val));
+  if (argc == 2 && !strcmp(argv[1], "-l")) {
+    list_for(&tokens->toks, it) {
+      inf("%d: type(%d), '%s'", it->val.line, it->val.kind, keys_rof(&it->val));
+    }
   }
 
   /*
