@@ -10,7 +10,8 @@
 </p>
 <br />
 
- 简单的C项目模板
+根据[craftinginterpreters](https://github.com/munificent/craftinginterpreters)及其中文翻译版,
+构建的小型动态语言.
  
 ## 目录
 
@@ -22,7 +23,7 @@
 
 ### 上手指南
 
-将本仓库克隆至本地并改名.
+将本仓库克隆至本地.
 
 ###### 配置要求
 
@@ -32,12 +33,10 @@
 ###### **安装步骤**
 
 ```shell
-git clone https://github.com/RunThem/lox.git ${your_repository}
-cd ${your_repository}
+git clone https://github.com/RunThem/lox.git
+cd lox
 
-bash -c 'sed -i "s/lox/$(basename `pwd`)/g" README.md xmake.lua && git update-ref -d HEAD && git add . && git commit -m "first commit" && git remote remove origin'
-
-xmake f -m debug --toolchain=clang && xmake
+xmake f -m debug --toolchain=clang && xmake -v
 
 xmake lsp
 ```
@@ -57,3 +56,6 @@ xmake lsp
 - [sds](https://github.com/antirez/sds)
 - [mimalloc](https://github.com/microsoft/mimalloc)
 - [dbg-macro](https://github.com/eerimoq/dbg-macro)
+- [craftinginterpreters](https://github.com/munificent/craftinginterpreters)
+- [craftinginterpreters_zh](https://github.com/GuoYaxiang/craftinginterpreters_zh)
+
