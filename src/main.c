@@ -111,71 +111,39 @@ tokens_t* lexer(c_str file) {
 
   lexer_init(&tokens, file);
 
-#define pop()                (tokens->code->c_str[tokens->pos++])
-#define peek()               (tokens->code->c_str[tokens->pos])
-#define match(ch)            (peek() == c(ch))
-#define make(t, str, arg...) lexer_add(&tokens, (token_t){.type = (t), .tok = str_new((str), arg)})
+#define pop()     (tokens->code->c_str[tokens->pos++])
+#define peek()    (tokens->code->c_str[tokens->pos])
+#define match(ch) (peek() == c(ch) && (++tokens->pos))
+#define make(t)   lexer_add(&tokens, (token_t){.type = (t)})
 
   while (tokens->pos < tokens->code->len) {
     char ch = pop();
 
     switch (ch) {
       /* clang-format off */
-      case '(': { make(T_L_PAREN,   ch); break; }
-      case ')': { make(T_R_PAREN,   ch); break; }
-      case '{': { make(T_L_BRACE,   ch); break; }
-      case '}': { make(T_R_BRACE,   ch); break; }
-      case ';': { make(T_SEMICOLON, ch); break; }
-      case ',': { make(T_COMMA,     ch); break; }
-      case '.': { make(T_DOT,       ch); break; }
-      case '+': { make(T_ADD,       ch); break; }
-      case '-': { make(T_SUB,       ch); break; }
-      case '*': { make(T_MUL,       ch); break; }
-      case '/': { make(T_DIV,       ch); break; }
-      case '%': { make(T_MOD,       ch); break; }
+      case '(': { make(T_L_PAREN  ); break; }
+      case ')': { make(T_R_PAREN  ); break; }
+      case '{': { make(T_L_BRACE  ); break; }
+      case '}': { make(T_R_BRACE  ); break; }
+      case ';': { make(T_SEMICOLON); break; }
+      case ',': { make(T_COMMA    ); break; }
+      case '.': { make(T_DOT      ); break; }
+      case '+': { make(T_ADD      ); break; }
+      case '-': { make(T_SUB      ); break; }
+      case '*': { make(T_MUL      ); break; }
+      case '/': { make(T_DIV      ); break; }
+      case '%': { make(T_MOD      ); break; }
+      case '!': { make(match('=') ? T_B_EQUAL : T_BANG);    break; }
+      case '=': { make(match('=') ? T_E_EQUAL : T_EQUAL);   break; }
+      case '<': { make(match('=') ? T_L_EQUAL : T_LESS);    break; }
+      case '>': { make(match('=') ? T_G_EQUAL : T_GREATER); break; }
       /* clang-format on */
-      case '!': {
-        if (match('=')) {
-          make(T_B_EQUAL, "!=");
-          pop();
-        } else
-          make(T_BANG, "!");
-
-        break;
-      }
-      case '=': {
-        if (match('=')) {
-          make(T_E_EQUAL, "==");
-          pop();
-        } else
-          make(T_EQUAL, "=");
-
-        break;
-      }
-      case '<': {
-        if (match('=')) {
-          make(T_L_EQUAL, "<=");
-          pop();
-        } else
-          make(T_LESS, "<");
-
-        break;
-      }
-      case '>': {
-        if (match('=')) {
-          make(T_G_EQUAL, ">=");
-          pop();
-        } else
-          make(T_GREATER, ">");
-
-        break;
-      }
       default:
         break;
     }
   }
 
-  make(T_EOF, c('\0'));
+  make(T_EOF);
 
 #undef pop
 #undef peek
@@ -197,7 +165,7 @@ int main(int argc, const char** argv) {
   }
 
   list_for(&tokens->toks, it) {
-    inf("type(%d), '%s'", it->val.type, it->val.tok->c_str);
+    inf("type(%d)", it->val.type);
   }
 
   goto cleanup;
@@ -205,7 +173,8 @@ cleanup:
   str_cleanup(&tokens->code);
 
   list_for(&tokens->toks, it) {
-    str_cleanup(&_(it).val.tok);
+    if (it->val.tok != nullptr)
+      str_cleanup(&_(it).val.tok);
   }
 
   list_cleanup(&tokens->toks);
