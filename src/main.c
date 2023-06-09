@@ -119,6 +119,20 @@ tokens_t* lexer(c_str file) {
     char ch = pop();
 
     switch (ch) {
+      /* clang-format off */
+      case '(': { make(T_L_PAREN,   ch); break; }
+      case ')': { make(T_R_PAREN,   ch); break; }
+      case '{': { make(T_L_BRACE,   ch); break; }
+      case '}': { make(T_R_BRACE,   ch); break; }
+      case ';': { make(T_SEMICOLON, ch); break; }
+      case ',': { make(T_COMMA,     ch); break; }
+      case '.': { make(T_DOT,       ch); break; }
+      case '+': { make(T_ADD,       ch); break; }
+      case '-': { make(T_SUB,       ch); break; }
+      case '*': { make(T_MUL,       ch); break; }
+      case '/': { make(T_DIV,       ch); break; }
+      case '%': { make(T_MOD,       ch); break; }
+      /* clang-format on */
       default:
         break;
     }
