@@ -31,6 +31,8 @@ int main(int argc, const char** argv) {
     }
   }
 
+  parser(tokens);
+
   /*
    * cleanup
    * */
