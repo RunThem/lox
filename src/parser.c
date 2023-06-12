@@ -1,5 +1,7 @@
 #include "parser.h"
 #include "token.h"
+#include "u/str.h"
+#include "u/u.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,8 +27,8 @@ static void err_at_cur(c_str msg);
 static void err_at_pre(c_str msg);
 static void consume(kind_e kind, c_str msg);
 static bool is_kind(kind_e kind);
-static ast_t* expr();
-static ast_t* mul();
+static ast_t* binary(int prec);
+static ast_t* unary();
 static ast_t* primary();
 
 static void pop() {
@@ -70,15 +72,6 @@ static void err_at_pre(c_str msg) {
   err_at(&parse.pre, msg);
 }
 
-ast_t* parser(tokens_t* tokens) {
-  tok = list_get_iter(&tokens->toks);
-
-  pop();
-  pop();
-
-  return expr();
-}
-
 static void consume(kind_e kind, c_str msg) {
   if (parse.cur.kind == kind) {
     pop();
@@ -96,43 +89,51 @@ static bool is_kind(kind_e kind) {
   return false;
 }
 
-static ast_t* expr() {
-  ast_t* node = mul();
+ast_t* parser(tokens_t* tokens) {
+  tok = list_get_iter(&tokens->toks);
 
-  while (true) {
-    if (is_kind(T_ADD) || is_kind(T_SUB)) {
-      auto t = parse.cur;
-      pop();
-      node = new_node(node, mul(), t);
-    } else {
-      break;
-    }
-  }
+  pop();
+  pop();
 
-  return node;
+  return binary(1);
 }
 
-static ast_t* mul() {
-  ast_t* node = primary();
+static ast_t* binary(int prec) {
+  ast_t* left = unary();
 
   while (true) {
-    if (is_kind(T_MUL) || is_kind(T_DIV)) {
-      auto t = parse.cur;
-      pop();
-      node = new_node(node, primary(), t);
-    } else {
-      break;
+    auto op = parse.cur;
+
+    if (precedence(op.kind) < prec) {
+      return left;
     }
+
+    pop();
+    ast_t* right = binary(precedence(op.kind) + 1);
+
+    left = new_node(left, right, op);
   }
 
-  return node;
+  return nullptr;
+}
+
+static ast_t* unary() {
+  if (is_kind(T_ADD)) {
+    return primary();
+  } else if (is_kind(T_SUB)) {
+    return new_node(new_node(nullptr, nullptr, (token_t){.kind = T_NUMBER, .tok = str_new("0")}),
+                    primary(),
+                    parse.cur);
+  }
+
+  return primary();
 }
 
 static ast_t* primary() {
   ast_t* node = nullptr;
 
   if (is_kind(T_R_PAREN)) {
-    node = expr();
+    node = binary(1);
 
     consume(T_R_PAREN, "Expect ')' after expression."); /* skip ')' */
   } else {

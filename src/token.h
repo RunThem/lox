@@ -73,3 +73,4 @@ typedef struct {
 
 extern kind_e keys_of(token_t* tok);
 extern c_str keys_rof(token_t* tok);
+extern int precedence(kind_e kind);

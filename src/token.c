@@ -75,3 +75,30 @@ c_str keys_rof(token_t* tok) {
 
   return "";
 }
+
+int precedence(kind_e kind) {
+  switch (kind) {
+    case T_ADD:
+    case T_SUB:
+      return 1;
+
+    case T_MUL:
+    case T_DIV:
+      return 2;
+
+    case T_E_EQUAL:
+    case T_B_EQUAL:
+      return 3;
+
+    case T_AND:
+      return 4;
+
+    case T_OR:
+      return 5;
+
+    default:
+      break;
+  }
+
+  return 0;
+}
