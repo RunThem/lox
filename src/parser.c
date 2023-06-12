@@ -19,7 +19,7 @@ list_iter(token_t) tok = nullptr;
 
 /* static function */
 static void pop();
-static ast_t* new_node(ast_t* left, ast_t* right, str_t value);
+static ast_t* new_node(ast_t* left, ast_t* right, token_t tok);
 static void err_at(token_t* tok, c_str msg);
 static void err_at_cur(c_str msg);
 static void err_at_pre(c_str msg);
@@ -38,11 +38,11 @@ static void pop() {
   }
 }
 
-static ast_t* new_node(ast_t* left, ast_t* right, str_t value) {
+static ast_t* new_node(ast_t* left, ast_t* right, token_t tok) {
   ast_t* node = u_talloc(sizeof(ast_t), ast_t*);
   node->left  = left;
   node->right = right;
-  node->value = value;
+  node->tok   = tok;
 
   return node;
 }
@@ -70,15 +70,13 @@ static void err_at_pre(c_str msg) {
   err_at(&parse.pre, msg);
 }
 
-void parser(tokens_t* tokens) {
+ast_t* parser(tokens_t* tokens) {
   tok = list_get_iter(&tokens->toks);
 
   pop();
   pop();
 
-  auto tree = expr();
-
-  useno(tree);
+  return expr();
 }
 
 static void consume(kind_e kind, c_str msg) {
@@ -92,7 +90,6 @@ static void consume(kind_e kind, c_str msg) {
 
 static bool is_kind(kind_e kind) {
   if (parse.cur.kind == kind) {
-    pop();
     return true;
   }
 
@@ -103,10 +100,10 @@ static ast_t* expr() {
   ast_t* node = mul();
 
   while (true) {
-    if (is_kind(T_ADD)) {
-      node = new_node(node, mul(), str_new("+"));
-    } else if (is_kind(T_SUB)) {
-      node = new_node(node, mul(), str_new("-"));
+    if (is_kind(T_ADD) || is_kind(T_SUB)) {
+      auto t = parse.cur;
+      pop();
+      node = new_node(node, mul(), t);
     } else {
       break;
     }
@@ -119,10 +116,10 @@ static ast_t* mul() {
   ast_t* node = primary();
 
   while (true) {
-    if (is_kind(T_MUL)) {
-      node = new_node(node, primary(), str_new("*"));
-    } else if (is_kind(T_DIV)) {
-      node = new_node(node, primary(), str_new("/"));
+    if (is_kind(T_MUL) || is_kind(T_DIV)) {
+      auto t = parse.cur;
+      pop();
+      node = new_node(node, primary(), t);
     } else {
       break;
     }
@@ -139,7 +136,7 @@ static ast_t* primary() {
 
     consume(T_R_PAREN, "Expect ')' after expression."); /* skip ')' */
   } else {
-    node = new_node(nullptr, nullptr, parse.cur.tok);
+    node = new_node(nullptr, nullptr, parse.cur);
     pop();
   }
 

@@ -4,6 +4,7 @@
 #include "token.h"
 
 tokens_t* tokens = nullptr;
+ast_t* asts      = nullptr;
 
 static void cleanup() {
   str_cleanup(&tokens->code);
@@ -16,6 +17,26 @@ static void cleanup() {
   list_cleanup(&tokens->toks);
 
   u_free(tokens);
+}
+
+static void ast_dis(ast_t* ast) {
+  if (ast == nullptr) {
+    return;
+  }
+
+  fprintf(stderr, "(");
+
+  if (ast->left != nullptr) {
+    ast_dis(ast->left);
+  }
+
+  fprintf(stderr, "%s", keys_rof(&ast->tok));
+
+  if (ast->right != nullptr) {
+    ast_dis(ast->right);
+  }
+
+  fprintf(stderr, ")");
 }
 
 int main(int argc, const char** argv) {
@@ -31,7 +52,10 @@ int main(int argc, const char** argv) {
     }
   }
 
-  parser(tokens);
+  asts = parser(tokens);
+
+  ast_dis(asts);
+  fprintf(stderr, "\n");
 
   /*
    * cleanup
